@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { calculateTruckCapacity, calculateDeliveries, DeliveryPlan } from '@/lib/calculations';
-import { Calculator, Truck, CheckCircle2, AlertTriangle, RefreshCw, Save } from 'lucide-react';
+import { Calculator, Truck, CheckCircle2, AlertTriangle, RefreshCw, Save, ClipboardList } from 'lucide-react';
 import { addDays, format, parseISO } from 'date-fns';
 
 export default function PlanningPage() {
