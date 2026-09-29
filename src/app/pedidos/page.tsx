@@ -5,31 +5,32 @@ import { ClipboardList, Truck, ChevronRight } from 'lucide-react';
 export const revalidate = 0; // Disable static rendering for this page
 
 export default async function PedidosPage() {
-  const supabase = getSupabase();
-  
-  // Fetch orders with related data
-  const { data: pedidos, error } = await supabase
-    .from('pedidos')
-    .select(`
-      id,
-      quantidade_solicitada,
-      capacidade_por_caminhao,
-      quantidade_entregas,
-      status,
-      created_at,
-      clientes (nome),
-      obras (nome),
-      tipos_estaca (nome)
-    `)
-    .order('created_at', { ascending: false });
+  try {
+    const supabase = getSupabase();
+    
+    // Fetch orders with related data
+    const { data: pedidos, error } = await supabase
+      .from('pedidos')
+      .select(`
+        id,
+        quantidade_solicitada,
+        capacidade_por_caminhao,
+        quantidade_entregas,
+        status,
+        created_at,
+        clientes (nome),
+        obras (nome),
+        tipos_estaca (nome)
+      `)
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    return (
-      <div className="p-8 text-center text-red-600">
-        Erro ao carregar pedidos: {error.message}
-      </div>
-    );
-  }
+    if (error) {
+      return (
+        <div className="p-8 text-center text-red-600">
+          Erro do Supabase: {error.message}
+        </div>
+      );
+    }
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
@@ -108,4 +109,12 @@ export default async function PedidosPage() {
       </div>
     </div>
   );
+  } catch (err: any) {
+    return (
+      <div className="p-8 text-center text-red-600 bg-red-50 m-8 rounded-lg border border-red-200">
+        <h2 className="font-bold text-lg mb-2">Erro fatal na página</h2>
+        <p>{err.message || String(err)}</p>
+      </div>
+    );
+  }
 }
