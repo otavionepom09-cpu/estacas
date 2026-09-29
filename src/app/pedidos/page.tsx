@@ -114,6 +114,12 @@ export default async function PedidosPage() {
       <div className="p-8 text-center text-red-600 bg-red-50 m-8 rounded-lg border border-red-200">
         <h2 className="font-bold text-lg mb-2">Erro fatal na página</h2>
         <p>{err.message || String(err)}</p>
+        <div className="mt-4 text-sm font-mono bg-white p-4 rounded text-left overflow-auto border border-red-100">
+          <strong>Debug Info:</strong><br />
+          URL type: {typeof process.env.NEXT_PUBLIC_SUPABASE_URL}<br />
+          URL value: "{process.env.NEXT_PUBLIC_SUPABASE_URL}"<br />
+          Key length: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0}
+        </div>
       </div>
     );
   }
