@@ -4,8 +4,11 @@ let _supabase: SupabaseClient | null = null;
 
 export function getSupabase(): SupabaseClient {
   if (!_supabase) {
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/['"]/g, '').trim();
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.replace(/['"]/g, '').trim();
+    const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    const url = rawUrl?.replace(/['"]/g, '').trim();
+    const key = rawKey?.replace(/['"]/g, '').trim();
     if (!url || !key) {
       throw new Error('Supabase URL e Anon Key não configurados. Verifique as variáveis de ambiente.');
     }
