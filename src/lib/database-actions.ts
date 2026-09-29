@@ -15,7 +15,7 @@ export async function saveOrderToDatabase(data: {
 }) {
   try {
     const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANO || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     const url = rawUrl?.replace(/['"]/g, '').trim();
     const key = rawKey?.replace(/['"]/g, '').trim();
