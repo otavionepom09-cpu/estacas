@@ -6,7 +6,7 @@ import { Calculator } from 'lucide-react';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Estacas Pro - Planejamento",
+  title: "Cofer - Planejamento",
   description: "Sistema para planejamento e controle de entregas de estacas de concreto armado.",
 };
 
@@ -20,11 +20,11 @@ export default function RootLayout({
       <body className={inter.className}>
         <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
           {/* Topbar */}
-          <header className="bg-blue-900 text-white shadow-md z-10">
+          <header className="bg-emerald-800 text-white shadow-md z-10">
             <div className="max-w-6xl mx-auto px-4 py-4 md:px-6 flex items-center gap-3">
-              <Calculator size={28} className="text-blue-300" />
+              <Calculator size={28} className="text-emerald-300" />
               <div className="font-bold text-xl tracking-wider">
-                ESTACAS PRO
+                Cofer
               </div>
             </div>
           </header>
