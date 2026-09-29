@@ -6,6 +6,10 @@
 }
 
 @theme inline {
+  --color-cofer-50: #e6f4ef;
+  --color-cofer-500: #05955F;
+  --color-cofer-600: #048b59;
+  --color-cofer-700: #03754b;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);

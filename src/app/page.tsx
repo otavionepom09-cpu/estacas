@@ -58,7 +58,7 @@ export default function PlanningPage() {
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-          <Calculator className="text-emerald-600" size={32} />
+          <Calculator className="text-cofer-600" size={32} />
           Planejamento de Entregas
         </h1>
       </div>
@@ -78,7 +78,7 @@ export default function PlanningPage() {
                 type="number" 
                 value={largura} 
                 onChange={e => setLargura(Number(e.target.value))}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
             <div>
@@ -87,7 +87,7 @@ export default function PlanningPage() {
                 type="number" 
                 value={comprimento} 
                 onChange={e => setComprimento(Number(e.target.value))}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
             <div>
@@ -96,7 +96,7 @@ export default function PlanningPage() {
                 type="number" 
                 value={diametro} 
                 onChange={e => setDiametro(Number(e.target.value))}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
           </div>
@@ -112,7 +112,7 @@ export default function PlanningPage() {
             </div>
             <div className="mt-4 pt-4 border-t border-slate-200">
               <span className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Capacidade do Caminhão</span>
-              <div className="text-3xl font-black text-emerald-700">{capacidade} <span className="text-lg font-medium text-slate-500">estacas</span></div>
+              <div className="text-3xl font-black text-cofer-700">{capacidade} <span className="text-lg font-medium text-slate-500">estacas</span></div>
             </div>
           </div>
         </div>
@@ -132,7 +132,7 @@ export default function PlanningPage() {
                 value={cliente}
                 onChange={e => setCliente(e.target.value)}
                 placeholder="Selecione ou digite..."
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
             <div>
@@ -142,7 +142,7 @@ export default function PlanningPage() {
                 value={obra}
                 onChange={e => setObra(e.target.value)}
                 placeholder="Identificação da obra..."
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
             <div>
@@ -151,7 +151,7 @@ export default function PlanningPage() {
                 type="number" 
                 value={quantidadeSolicitada} 
                 onChange={e => setQuantidadeSolicitada(Number(e.target.value))}
-                className="w-full p-2 border rounded text-lg font-semibold focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded text-lg font-semibold focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
             <div>
@@ -160,14 +160,14 @@ export default function PlanningPage() {
                 type="date" 
                 value={dataPrimeiraEntrega}
                 onChange={e => setDataPrimeiraEntrega(e.target.value)}
-                className="w-full p-2 border rounded focus:ring-2 focus:ring-emerald-500 outline-none"
+                className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none"
               />
             </div>
           </div>
 
           <button 
             onClick={handleCalculate}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-4 px-6 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md"
+            className="w-full bg-cofer-600 hover:bg-cofer-700 text-white font-bold py-4 px-6 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md"
           >
             <RefreshCw size={20} />
             CALCULAR ENTREGAS
@@ -236,7 +236,7 @@ export default function PlanningPage() {
                 {entregas.map((entrega, i) => {
                   const isLast = i === entregas.length - 1;
                   return (
-                    <tr key={i} className={`hover:bg-slate-50 ${isLast ? 'bg-emerald-50/30' : ''}`}>
+                    <tr key={i} className={`hover:bg-slate-50 ${isLast ? 'bg-cofer-50/30' : ''}`}>
                       <td className="p-3 font-medium text-slate-500">{entrega.entrega_numero}</td>
                       <td className="p-3">
                         <input 
