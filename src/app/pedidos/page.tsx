@@ -115,10 +115,13 @@ export default async function PedidosPage() {
         <h2 className="font-bold text-lg mb-2">Erro fatal na página</h2>
         <p>{err.message || String(err)}</p>
         <div className="mt-4 text-sm font-mono bg-white p-4 rounded text-left overflow-auto border border-red-100">
-          <strong>Debug Info:</strong><br />
-          URL type: {typeof process.env.NEXT_PUBLIC_SUPABASE_URL}<br />
-          URL value: "{process.env.NEXT_PUBLIC_SUPABASE_URL}"<br />
-          Key length: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.length || 0}
+          <strong>Debug Info (Server Runtime):</strong><br />
+          SUPABASE_URL: {process.env.SUPABASE_URL ? '✅ Definido' : '❌ Não encontrado'}<br />
+          SUPABASE_ANON_KEY: {process.env.SUPABASE_ANON_KEY ? '✅ Definido' : '❌ Não encontrado'}<br />
+          SUPABASE_ANO: {process.env.SUPABASE_ANO ? '✅ Definido' : '❌ Não encontrado'}<br />
+          NEXT_PUBLIC_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Definido' : '❌ Não encontrado'}<br />
+          <hr className="my-2" />
+          Se tudo estiver ❌, a Vercel não injetou as variáveis neste Deploy.
         </div>
       </div>
     );
