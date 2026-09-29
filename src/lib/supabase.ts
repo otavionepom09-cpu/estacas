@@ -1,10 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { DeliveryPlan } from './calculations';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+let _supabase: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+function getSupabase(): SupabaseClient {
+  if (!_supabase) {
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!url || !key) {
+      throw new Error('Supabase URL e Anon Key não configurados. Verifique as variáveis de ambiente.');
+    }
+    _supabase = createClient(url, key);
+  }
+  return _supabase;
+}
 
 export async function saveOrderToDatabase(data: {
   clienteNome: string;
@@ -18,7 +27,7 @@ export async function saveOrderToDatabase(data: {
 }): Promise<{ success: boolean; pedidoId?: string; error?: string }> {
   try {
     // 1. Get or create Cliente
-    const { data: existingClientes, error: errFind1 } = await supabase
+    const { data: existingClientes, error: errFind1 } = await getSupabase()
       .from('clientes')
       .select('id')
       .ilike('nome', data.clienteNome)
@@ -29,7 +38,7 @@ export async function saveOrderToDatabase(data: {
     if (!errFind1 && existingClientes && existingClientes.length > 0) {
       clienteId = existingClientes[0].id as string;
     } else {
-      const { data: newCliente, error: errCliente } = await supabase
+      const { data: newCliente, error: errCliente } = await getSupabase()
         .from('clientes')
         .insert({ nome: data.clienteNome })
         .select('id')
@@ -39,7 +48,7 @@ export async function saveOrderToDatabase(data: {
     }
 
     // 2. Get or create Obra
-    const { data: existingObras, error: errFind2 } = await supabase
+    const { data: existingObras, error: errFind2 } = await getSupabase()
       .from('obras')
       .select('id')
       .eq('cliente_id', clienteId)
@@ -51,7 +60,7 @@ export async function saveOrderToDatabase(data: {
     if (!errFind2 && existingObras && existingObras.length > 0) {
       obraId = existingObras[0].id as string;
     } else {
-      const { data: newObra, error: errObra } = await supabase
+      const { data: newObra, error: errObra } = await getSupabase()
         .from('obras')
         .insert({ cliente_id: clienteId, nome: data.obraNome })
         .select('id')
@@ -61,7 +70,7 @@ export async function saveOrderToDatabase(data: {
     }
 
     // 3. Get or create Tipo Estaca
-    const { data: existingTipos, error: errFind3 } = await supabase
+    const { data: existingTipos, error: errFind3 } = await getSupabase()
       .from('tipos_estaca')
       .select('id')
       .eq('diametro_cm', data.diametro)
@@ -72,7 +81,7 @@ export async function saveOrderToDatabase(data: {
     if (!errFind3 && existingTipos && existingTipos.length > 0) {
       tipoEstacaId = existingTipos[0].id as string;
     } else {
-      const { data: newTipo, error: errTipo } = await supabase
+      const { data: newTipo, error: errTipo } = await getSupabase()
         .from('tipos_estaca')
         .insert({ nome: `Estaca Ø${data.diametro}`, diametro_cm: data.diametro })
         .select('id')
@@ -82,7 +91,7 @@ export async function saveOrderToDatabase(data: {
     }
 
     // 4. Create Pedido
-    const { data: newPedido, error: errPedido } = await supabase
+    const { data: newPedido, error: errPedido } = await getSupabase()
       .from('pedidos')
       .insert({
         cliente_id: clienteId,
@@ -111,7 +120,7 @@ export async function saveOrderToDatabase(data: {
       status: entrega.status,
     }));
 
-    const { error: errEntregas } = await supabase
+    const { error: errEntregas } = await getSupabase()
       .from('entregas')
       .insert(entregasToInsert);
 
@@ -124,3 +133,4 @@ export async function saveOrderToDatabase(data: {
     return { success: false, error: msg };
   }
 }
+
