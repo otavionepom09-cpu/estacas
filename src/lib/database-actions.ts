@@ -133,3 +133,27 @@ export async function saveOrderToDatabase(data: {
     return { success: false, error: msg };
   }
 }
+
+export async function deleteOrder(pedidoId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANO || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const url = rawUrl?.replace(/['"]/g, '').trim();
+    const key = rawKey?.replace(/['"]/g, '').trim();
+    if (!url || !key) throw new Error('Supabase não configurado.');
+
+    const supabase = createClient(url, key);
+
+    // Entregas are cascade deleted via foreign key
+    const { error } = await supabase
+      .from('pedidos')
+      .delete()
+      .eq('id', pedidoId);
+
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Erro desconhecido';
+    return { success: false, error: msg };
+  }
+}

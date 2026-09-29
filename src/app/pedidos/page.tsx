@@ -1,6 +1,7 @@
 import { getSupabase } from '@/lib/supabase';
 import { format } from 'date-fns';
-import { ClipboardList, Truck, ChevronRight } from 'lucide-react';
+import { ClipboardList, Truck } from 'lucide-react';
+import { DeleteButton } from './DeleteButton';
 
 export const revalidate = 0; // Disable static rendering for this page
 
@@ -96,9 +97,11 @@ export default async function PedidosPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <button className="text-slate-400 hover:text-cofer-600 transition-colors p-2" title="Ver detalhes (em breve)">
-                        <ChevronRight size={20} />
-                      </button>
+                      <DeleteButton
+                        pedidoId={pedido.id}
+                        cliente={pedido.clientes?.nome || ''}
+                        obra={pedido.obras?.nome || ''}
+                      />
                     </td>
                   </tr>
                 ))}
