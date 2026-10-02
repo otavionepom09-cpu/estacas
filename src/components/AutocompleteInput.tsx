@@ -38,7 +38,7 @@ export function AutocompleteInput({
       return;
     }
     const f = suggestions.filter(s =>
-      s.toLowerCase().includes(v.toLowerCase())
+      s.toLowerCase().startsWith(v.toLowerCase())
     );
     setFiltered(f);
     setOpen(f.length > 0);
