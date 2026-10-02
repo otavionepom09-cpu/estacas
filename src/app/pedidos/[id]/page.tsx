@@ -33,7 +33,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
       .eq('id', id)
       .single();
     
-    pedido = fallback.data;
+    pedido = fallback.data as any;
     error = fallback.error;
   }
 
