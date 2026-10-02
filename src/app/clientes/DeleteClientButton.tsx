@@ -8,16 +8,18 @@ import { Trash2 } from 'lucide-react';
 export function DeleteClientButton({ clienteId, clienteNome }: { clienteId: string; clienteNome: string }) {
   const [confirming, setConfirming] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const router = useRouter();
 
   const handleDelete = async () => {
     setLoading(true);
+    setErrorMsg(null);
     const res = await deleteClient(clienteId);
     setLoading(false);
     if (res.success) {
       router.refresh();
     } else {
-      alert('Erro ao excluir: ' + res.error);
+      setErrorMsg(res.error || 'Erro ao excluir');
       setConfirming(false);
     }
   };
@@ -39,9 +41,16 @@ export function DeleteClientButton({ clienteId, clienteNome }: { clienteId: stri
   }
 
   return (
-    <button onClick={() => setConfirming(true)}
-      className="flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors text-sm px-2 py-1 rounded hover:bg-red-50">
-      <Trash2 size={15} /> Excluir
-    </button>
+    <div className="flex flex-col items-end gap-1">
+      <button onClick={() => { setConfirming(true); setErrorMsg(null); }}
+        className="flex items-center gap-1 text-slate-400 hover:text-red-500 transition-colors text-sm px-2 py-1 rounded hover:bg-red-50">
+        <Trash2 size={15} /> Excluir
+      </button>
+      {errorMsg && (
+        <span className="text-[10px] text-red-500 bg-red-50 px-2 py-1 rounded border border-red-100 max-w-[200px] text-right leading-tight">
+          {errorMsg}
+        </span>
+      )}
+    </div>
   );
 }
