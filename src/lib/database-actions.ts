@@ -181,3 +181,41 @@ export async function getClientesEObras() {
     return { clientes: [], obras: [] };
   }
 }
+
+export async function checkDatabaseSchema() {
+  try {
+    const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANO || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const url = rawUrl?.replace(/['"]/g, '').trim();
+    const key = rawKey?.replace(/['"]/g, '').trim();
+    if (!url || !key) return { success: false, message: 'Faltam variáveis de ambiente (URL/Key)' };
+
+    const supabase = createClient(url, key);
+
+    // Tenta selecionar todas as colunas
+    const { error: errTodos } = await supabase.from('pedidos').select('*').limit(1);
+    
+    // Tenta selecionar especificamente a coluna nova
+    const { error: errJson } = await supabase.from('pedidos').select('json_planejamento').limit(1);
+
+    const ref = url.match(/https:\/\/(.*?)\.supabase\.co/)?.[1] || 'Desconhecido';
+
+    let diagnostico = `🔍 PROJETO CONECTADO NA VERCEL: ${ref}\n\n`;
+    
+    if (errTodos && errTodos.message.includes('relation "pedidos" does not exist')) {
+      diagnostico += `❌ A tabela 'pedidos' NÃO EXISTE neste projeto!`;
+    } else {
+      diagnostico += `✅ A tabela 'pedidos' existe.\n`;
+      
+      if (errJson && errJson.message.includes('Could not find')) {
+        diagnostico += `❌ A coluna 'json_planejamento' NÃO EXISTE (ou o cache não atualizou) neste projeto.`;
+      } else {
+        diagnostico += `✅ A coluna 'json_planejamento' EXISTE e está pronta para uso!`;
+      }
+    }
+
+    return { success: true, message: diagnostico, ref };
+  } catch (e: any) {
+    return { success: false, message: `Erro no diagnóstico: ${e.message}` };
+  }
+}

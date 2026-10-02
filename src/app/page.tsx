@@ -125,9 +125,21 @@ export default function PlanningPage() {
 
   return (
     <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <Calculator className="text-cofer-600" size={32} />
-        <h1 className="text-3xl font-bold text-slate-800">Planejamento de Entregas</h1>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Calculator className="text-cofer-600" size={32} />
+          <h1 className="text-3xl font-bold text-slate-800">Planejamento de Entregas</h1>
+        </div>
+        <button 
+          onClick={async () => {
+            const { checkDatabaseSchema } = await import('@/lib/database-actions');
+            const res = await checkDatabaseSchema();
+            alert(res.message);
+          }}
+          className="bg-amber-100 text-amber-800 px-4 py-2 rounded font-bold text-sm hover:bg-amber-200 transition-colors"
+        >
+          Diagnóstico do BD
+        </button>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
