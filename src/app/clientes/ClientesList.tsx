@@ -11,6 +11,7 @@ export function ClientesList({ clientes }: { clientes: any[] }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
   const router = useRouter();
 
   const toggleAll = () => {
@@ -23,10 +24,13 @@ export function ClientesList({ clientes }: { clientes: any[] }) {
     else setSelected([...selected, id]);
   };
 
-  const handleDeleteSelected = async () => {
+  const confirmDelete = () => {
     if (!selected.length) return;
-    if (!confirm(`Tem certeza que deseja excluir ${selected.length} cliente(s) e TODAS as suas obras e pedidos?`)) return;
+    setShowConfirmModal(true);
+  };
 
+  const executeDelete = async () => {
+    setShowConfirmModal(false);
     setIsDeleting(true);
     setErrorMsg(null);
     const res = await deleteClientsBulk(selected);
@@ -55,7 +59,7 @@ export function ClientesList({ clientes }: { clientes: any[] }) {
               <span className="text-sm font-semibold text-slate-500">{selected.length} selecionados</span>
             )}
             <button 
-              onClick={handleDeleteSelected} 
+              onClick={confirmDelete} 
               disabled={selected.length === 0 || isDeleting}
               className={`flex items-center gap-2 text-sm font-bold px-4 py-2 rounded transition-colors ${
                 selected.length > 0 
@@ -69,6 +73,32 @@ export function ClientesList({ clientes }: { clientes: any[] }) {
         </div>
       )}
       
+      {/* Modal de Confirmação Customizado */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md border border-slate-200">
+            <h3 className="text-lg font-bold text-slate-800 mb-2">Confirmar Exclusão</h3>
+            <p className="text-slate-600 text-sm mb-6">
+              Tem certeza que deseja excluir <strong>{selected.length} cliente(s)</strong> e TODAS as suas obras e pedidos? Essa ação não pode ser desfeita.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button 
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 rounded transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={executeDelete}
+                className="px-4 py-2 text-sm font-bold bg-red-600 hover:bg-red-700 text-white rounded shadow-sm transition-colors"
+              >
+                Sim, excluir tudo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {errorMsg && (
         <div className="bg-red-50 border-b border-red-100 text-red-600 text-sm px-4 py-3 font-medium text-center">
           {errorMsg}
