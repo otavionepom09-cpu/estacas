@@ -93,7 +93,7 @@ export async function saveOrderToDatabase(data: {
       tipoEstacaId = (newTipo as { id: string }).id;
     }
 
-    // 4. Create Pedido
+    // 4. Create Pedido (sem json_planejamento para evitar problema de cache do schema)
     const { data: newPedido, error: errPedido } = await supabase
       .from('pedidos')
       .insert({
@@ -107,13 +107,23 @@ export async function saveOrderToDatabase(data: {
         diametro_utilizado: data.diametro,
         largura_utilizada: data.largura,
         comprimento_utilizado: data.comprimento,
-        json_planejamento: data.json_planejamento,
       })
       .select('id')
       .single();
 
     if (errPedido || !newPedido) throw new Error(`Erro ao criar pedido: ${errPedido?.message}`);
     const pedidoId = (newPedido as { id: string }).id;
+
+    // 4b. Salva json_planejamento via update separado para evitar problema de cache do PostgREST
+    if (data.json_planejamento) {
+      await supabase
+        .from('pedidos')
+        .update({ json_planejamento: data.json_planejamento })
+        .eq('id', pedidoId)
+        .then(({ error: errJson }) => {
+          if (errJson) console.warn('json_planejamento não salvo:', errJson.message);
+        });
+    }
 
     // 5. Create Entregas
     const entregasToInsert = data.entregas.map((entrega) => ({
