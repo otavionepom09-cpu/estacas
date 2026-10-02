@@ -25,7 +25,9 @@ export async function saveOrderToDatabase(data: {
       throw new Error(`Variáveis de ambiente ausentes no servidor. URL: ${!!url}, KEY: ${!!key}`);
     }
 
-    const supabase = createClient(url, key);
+    const supabase = createClient(url, key, {
+      global: { fetch: (reqUrl, init) => fetch(reqUrl, { ...init, cache: 'no-store' }) }
+    });
 
     // 1. Get or create Cliente
     const { data: existingClientes, error: errFind1 } = await supabase
