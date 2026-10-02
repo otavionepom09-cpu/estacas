@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { calculateTruckCapacity, calculateMixedDeliveries, StakeItem, MixedDelivery } from '@/lib/calculations';
 import { Calculator, Truck, CheckCircle2, RefreshCw, Save, ClipboardList, Plus, Trash2 } from 'lucide-react';
+import { AutocompleteInput } from '@/components/AutocompleteInput';
 
 let _nextId = 1;
 const nextId = () => String(_nextId++);
@@ -214,21 +215,21 @@ export default function PlanningPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1">Cliente</label>
-              <input type="text" value={cliente} onChange={e => setCliente(e.target.value)}
-                list="lista-clientes"
-                placeholder="Nome do cliente..." className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none" />
-              <datalist id="lista-clientes">
-                {sugestoesClientes.map(c => <option key={c} value={c} />)}
-              </datalist>
+              <AutocompleteInput
+                value={cliente}
+                onChange={setCliente}
+                suggestions={sugestoesClientes}
+                placeholder="Digite para buscar ou criar cliente..."
+              />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1">Obra</label>
-              <input type="text" value={obra} onChange={e => setObra(e.target.value)}
-                list="lista-obras"
-                placeholder="Identificação da obra..." className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none" />
-              <datalist id="lista-obras">
-                {sugestoesObras.map(o => <option key={o} value={o} />)}
-              </datalist>
+              <AutocompleteInput
+                value={obra}
+                onChange={setObra}
+                suggestions={sugestoesObras}
+                placeholder="Digite para buscar ou criar obra..."
+              />
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-slate-600 mb-1">Data da 1ª Entrega</label>
