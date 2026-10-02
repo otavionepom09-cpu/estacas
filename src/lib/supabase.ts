@@ -12,7 +12,11 @@ export function getSupabase(): SupabaseClient {
     if (!url || !key) {
       throw new Error('Supabase URL e Anon Key não configurados. Verifique as variáveis de ambiente.');
     }
-    _supabase = createClient(url, key);
+    _supabase = createClient(url, key, {
+      global: {
+        fetch: (reqUrl, init) => fetch(reqUrl, { ...init, cache: 'no-store' })
+      }
+    });
   }
   return _supabase;
 }

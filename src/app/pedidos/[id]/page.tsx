@@ -22,7 +22,18 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
     .single();
 
   if (error || !pedido) {
-    return notFound();
+    return (
+      <div className="max-w-6xl mx-auto p-8 text-center">
+        <h1 className="text-2xl font-bold text-red-600 mb-4">Erro ao carregar o pedido</h1>
+        <p className="text-slate-600 mb-4">ID buscado: {id}</p>
+        <p className="text-slate-600 bg-slate-100 p-4 rounded font-mono text-sm text-left overflow-auto">
+          {error ? JSON.stringify(error, null, 2) : 'Nenhum registro encontrado no banco para este ID (Pode ter sido apagado).'}
+        </p>
+        <Link href="/pedidos" className="mt-6 inline-block bg-cofer-600 text-white px-6 py-2 rounded font-bold">
+          Voltar para Histórico
+        </Link>
+      </div>
+    );
   }
 
   // Se for um pedido novo salvo com json_planejamento
