@@ -2,11 +2,17 @@
 
 export function calculateTruckCapacity(
   largura_util_cm: number,
-  comprimento_util_cm: number,
-  diametro_cm: number
+  altura_util_cm: number, // Antes chamado de comprimento_util_cm
+  diametro_cm: number,
+  comprimento_caminhao_m: number = 10,
+  comprimento_estaca_m: number = 10
 ): number {
-  if (largura_util_cm <= 0 || comprimento_util_cm <= 0 || diametro_cm <= 0) return 0;
-  return Math.floor(largura_util_cm / diametro_cm) * Math.floor(comprimento_util_cm / diametro_cm);
+  if (largura_util_cm <= 0 || altura_util_cm <= 0 || diametro_cm <= 0 || comprimento_caminhao_m <= 0 || comprimento_estaca_m <= 0) return 0;
+  
+  const capacidadeSecao = Math.floor(largura_util_cm / diametro_cm) * Math.floor(altura_util_cm / diametro_cm);
+  const fileiras = Math.floor(comprimento_caminhao_m / comprimento_estaca_m);
+  
+  return capacidadeSecao * fileiras;
 }
 
 export interface DeliveryPlan {
@@ -38,11 +44,13 @@ export function calculateDeliveries(
 export interface StakeItem {
   id: string;
   diametro: number;
+  comprimento_m: number;
   quantidade: number;
 }
 
 export interface MixedDeliveryItem {
   diametro: number;
+  comprimento_m: number;
   quantidade: number;
   capacidade_caminhao: number; // quantas desta estaca cabem em um caminhão cheio
 }
@@ -58,33 +66,29 @@ export interface MixedDelivery {
 
 /**
  * Calcula entregas mistas com múltiplos tipos de estaca.
- *
- * Lógica: percorre os tipos de estaca na ordem fornecida.
- * Dentro de cada entrega (caminhão), preenche com o tipo atual
- * até encher ou esgotar. O espaço restante é ocupado pelo próximo tipo.
- * Uma nova entrega só começa quando o caminhão está cheio ou todos
- * os stakes atuais foram entregues e não há mais espaço para o próximo.
  */
 export function calculateMixedDeliveries(
   items: StakeItem[],
   largura: number,
-  comprimento: number,
+  altura: number,
+  comprimento_caminhao_m: number,
   dataPrimeira: string
 ): MixedDelivery[] {
   if (!items.length) return [];
 
-  // Calcula capacidade por tipo
-  const capMap: Record<number, number> = {};
+  // Calcula capacidade por tipo (considerando diametro e comprimento da estaca)
+  const capMap: Record<string, number> = {};
   items.forEach(item => {
-    if (!capMap[item.diametro]) {
-      capMap[item.diametro] = calculateTruckCapacity(largura, comprimento, item.diametro);
+    const key = `${item.diametro}-${item.comprimento_m}`;
+    if (!capMap[key]) {
+      capMap[key] = calculateTruckCapacity(largura, altura, item.diametro, comprimento_caminhao_m, item.comprimento_m);
     }
   });
 
   // Cópia mutável dos quantitativos restantes
   const remaining = items
-    .filter(i => i.diametro > 0 && i.quantidade > 0)
-    .map(i => ({ diametro: i.diametro, restante: i.quantidade }));
+    .filter(i => i.diametro > 0 && i.comprimento_m > 0 && i.quantidade > 0)
+    .map(i => ({ diametro: i.diametro, comprimento_m: i.comprimento_m, restante: i.quantidade }));
 
   const deliveries: MixedDelivery[] = [];
 
@@ -98,7 +102,8 @@ export function calculateMixedDeliveries(
 
     for (const r of remaining) {
       if (r.restante <= 0) continue;
-      const cap = capMap[r.diametro] ?? 0;
+      const key = `${r.diametro}-${r.comprimento_m}`;
+      const cap = capMap[key] ?? 0;
       if (cap <= 0) continue;
 
       const fracaoPorEstaca = 1 / cap;
@@ -111,7 +116,7 @@ export function calculateMixedDeliveries(
       fracaoUsada += pegar * fracaoPorEstaca;
       totalEntregue += pegar;
 
-      entregaItems.push({ diametro: r.diametro, quantidade: pegar, capacidade_caminhao: cap });
+      entregaItems.push({ diametro: r.diametro, comprimento_m: r.comprimento_m, quantidade: pegar, capacidade_caminhao: cap });
 
       // Caminhão cheio (≥99.9% para evitar problemas de float)
       if (fracaoUsada >= 0.999) break;

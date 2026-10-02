@@ -10,7 +10,8 @@ const nextId = () => String(_nextId++);
 export default function PlanningPage() {
   // Bloco 1 — Caminhão
   const [largura, setLargura] = useState<number>(245);
-  const [comprimento, setComprimento] = useState<number>(240);
+  const [altura, setAltura] = useState<number>(240); // Antes comprimento_util
+  const [comprimentoCaminhao, setComprimentoCaminhao] = useState<number>(10);
 
   // Bloco 2 — Solicitação
   const [cliente, setCliente] = useState('');
@@ -21,7 +22,7 @@ export default function PlanningPage() {
 
   // Itens de estaca (múltiplos tipos)
   const [stakeItems, setStakeItems] = useState<StakeItem[]>([
-    { id: nextId(), diametro: 30, quantidade: 100 },
+    { id: nextId(), diametro: 20, comprimento_m: 5, quantidade: 200 },
   ]);
 
   // Resultado
@@ -31,12 +32,12 @@ export default function PlanningPage() {
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const addStakeItem = () =>
-    setStakeItems(prev => [...prev, { id: nextId(), diametro: 30, quantidade: 0 }]);
+    setStakeItems(prev => [...prev, { id: nextId(), diametro: 20, comprimento_m: 5, quantidade: 0 }]);
 
   const removeStakeItem = (id: string) =>
     setStakeItems(prev => prev.filter(i => i.id !== id));
 
-  const updateStakeItem = (id: string, field: 'diametro' | 'quantidade', value: number) =>
+  const updateStakeItem = (id: string, field: 'diametro' | 'comprimento_m' | 'quantidade', value: number) =>
     setStakeItems(prev => prev.map(i => (i.id === id ? { ...i, [field]: value } : i)));
 
   const updateEntrega = (index: number, field: keyof MixedDelivery, value: string) =>
@@ -50,9 +51,9 @@ export default function PlanningPage() {
 
   // ── Calcular ──────────────────────────────────────────────────────────────
   const handleCalculate = () => {
-    const validos = stakeItems.filter(i => i.diametro > 0 && i.quantidade > 0);
+    const validos = stakeItems.filter(i => i.diametro > 0 && i.comprimento_m > 0 && i.quantidade > 0);
     if (!validos.length) return;
-    const result = calculateMixedDeliveries(validos, largura, comprimento, dataPrimeiraEntrega);
+    const result = calculateMixedDeliveries(validos, largura, altura, comprimentoCaminhao, dataPrimeiraEntrega);
     setEntregas(result);
     setSaveStatus(null);
   };
@@ -68,20 +69,20 @@ export default function PlanningPage() {
 
     try {
       const { saveOrderToDatabase } = await import('@/lib/database-actions');
-      // Build a synthetic single-type summary for DB (multi-type save to be expanded)
+      // Build a synthetic single-type summary for DB (multi-type save to be expanded in future)
       const dominante = stakeItems.reduce((a, b) => (a.quantidade >= b.quantidade ? a : b));
       const result = await saveOrderToDatabase({
         clienteNome: cliente,
         obraNome: obra,
         diametro: dominante.diametro,
-        largura,
-        comprimento,
+        largura: largura,
+        comprimento: altura, // Save height as original "comprimento" for DB compat
         quantidadeSolicitada: totalSolicitado,
-        capacidade: calculateTruckCapacity(largura, comprimento, dominante.diametro),
+        capacidade: calculateTruckCapacity(largura, altura, dominante.diametro, comprimentoCaminhao, dominante.comprimento_m),
         entregas: entregas.map((e, i) => ({
           entrega_numero: e.entrega_numero,
           quantidade: e.items.reduce((s, it) => s + it.quantidade, 0),
-          capacidade: calculateTruckCapacity(largura, comprimento, dominante.diametro),
+          capacidade: calculateTruckCapacity(largura, altura, dominante.diametro, comprimentoCaminhao, dominante.comprimento_m),
           saldo: e.saldo_total_apos_entrega,
           data: e.data,
           status: e.status,
@@ -93,7 +94,7 @@ export default function PlanningPage() {
         setSaveStatus({ type: 'success', message: 'Pedido salvo com sucesso!' });
         setTimeout(() => {
           setCliente(''); setObra(''); setEntregas([]); setSaveStatus(null);
-          setStakeItems([{ id: nextId(), diametro: 30, quantidade: 100 }]);
+          setStakeItems([{ id: nextId(), diametro: 20, comprimento_m: 5, quantidade: 200 }]);
         }, 3000);
       } else {
         setSaveStatus({ type: 'error', message: result.error || 'Erro ao salvar.' });
@@ -124,22 +125,27 @@ export default function PlanningPage() {
               className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-600 mb-1">Comprimento útil (cm)</label>
-            <input type="number" value={comprimento} onChange={e => setComprimento(Number(e.target.value))}
+            <label className="block text-sm font-medium text-slate-600 mb-1">Altura útil (cm)</label>
+            <input type="number" value={altura} onChange={e => setAltura(Number(e.target.value))}
               className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-600 mb-1">Comprimento total (metros)</label>
+            <input type="number" value={comprimentoCaminhao} onChange={e => setComprimentoCaminhao(Number(e.target.value))}
+              className="w-full p-2 border rounded focus:ring-2 focus:ring-cofer-500 outline-none font-semibold text-cofer-700" />
           </div>
 
           {/* Capacidade por tipo */}
           <div className="bg-slate-50 rounded-lg border border-slate-100 p-4 space-y-2">
             <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-              Capacidade por tipo
+              Capacidade Total
             </span>
-            {stakeItems.filter(i => i.diametro > 0).map(item => {
-              const cap = calculateTruckCapacity(largura, comprimento, item.diametro);
+            {stakeItems.filter(i => i.diametro > 0 && i.comprimento_m > 0).map(item => {
+              const cap = calculateTruckCapacity(largura, altura, item.diametro, comprimentoCaminhao, item.comprimento_m);
               return (
                 <div key={item.id} className="flex justify-between text-sm">
-                  <span className="text-slate-600">Ø{item.diametro} cm</span>
-                  <span className="font-bold text-cofer-700">{cap} estacas/caminhão</span>
+                  <span className="text-slate-600">Ø{item.diametro}cm × {item.comprimento_m}m</span>
+                  <span className="font-bold text-cofer-700">{cap} estacas</span>
                 </div>
               );
             })}
@@ -186,8 +192,9 @@ export default function PlanningPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-slate-50 border-b text-slate-600">
-                    <th className="p-3 text-left font-semibold">Diâmetro (cm)</th>
-                    <th className="p-3 text-left font-semibold">Quantidade</th>
+                    <th className="p-3 text-left font-semibold w-1/3">Diâmetro (cm)</th>
+                    <th className="p-3 text-left font-semibold w-1/3">Comprimento (m)</th>
+                    <th className="p-3 text-left font-semibold w-1/3">Qtd</th>
                     <th className="p-3 w-10"></th>
                   </tr>
                 </thead>
@@ -197,6 +204,11 @@ export default function PlanningPage() {
                       <td className="p-2">
                         <input type="number" value={item.diametro}
                           onChange={e => updateStakeItem(item.id, 'diametro', Number(e.target.value))}
+                          className="w-full p-2 border rounded focus:ring-1 focus:ring-cofer-500 outline-none" />
+                      </td>
+                      <td className="p-2">
+                        <input type="number" value={item.comprimento_m}
+                          onChange={e => updateStakeItem(item.id, 'comprimento_m', Number(e.target.value))}
                           className="w-full p-2 border rounded focus:ring-1 focus:ring-cofer-500 outline-none" />
                       </td>
                       <td className="p-2">
@@ -216,7 +228,7 @@ export default function PlanningPage() {
                 </tbody>
                 <tfoot>
                   <tr className="bg-slate-50 border-t">
-                    <td className="p-3 text-slate-500 text-xs font-medium">TOTAL</td>
+                    <td colSpan={2} className="p-3 text-slate-500 text-xs font-medium text-right">TOTAL</td>
                     <td className="p-3 font-bold text-slate-800">{totalSolicitado} estacas</td>
                     <td></td>
                   </tr>
@@ -279,9 +291,9 @@ export default function PlanningPage() {
                     <td className="p-3">
                       <div className="flex flex-wrap gap-1">
                         {entrega.items.map(item => (
-                          <span key={item.diametro}
+                          <span key={`${item.diametro}-${item.comprimento_m}`}
                             className="inline-flex items-center bg-cofer-50 text-cofer-700 border border-cofer-200 px-2 py-0.5 rounded text-xs font-semibold">
-                            {item.quantidade}× Ø{item.diametro}
+                            {item.quantidade}× Ø{item.diametro} ({item.comprimento_m}m)
                           </span>
                         ))}
                       </div>
