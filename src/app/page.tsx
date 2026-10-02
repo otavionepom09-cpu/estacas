@@ -62,13 +62,36 @@ export default function PlanningPage() {
 
   const totalSolicitado = stakeItems.reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
 
+  const [calcError, setCalcError] = useState<string | null>(null);
+
   // ── Calcular ──────────────────────────────────────────────────────────────
   const handleCalculate = () => {
+    setCalcError(null);
+    
+    // Validações
+    if (!largura || !altura || !comprimentoCaminhao) {
+      setCalcError('Preencha as dimensões do caminhão (Largura, Altura e Comprimento).');
+      return;
+    }
+
     const validos = stakeItems.filter(i => i.diametro > 0 && i.comprimento_m > 0 && i.quantidade > 0);
-    if (!validos.length) return;
-    const result = calculateMixedDeliveries(validos, largura, altura, comprimentoCaminhao, dataPrimeiraEntrega);
-    setEntregas(result);
-    setSaveStatus(null);
+    
+    if (!validos.length) {
+      setCalcError('Preencha ao menos um tipo de estaca com Diâmetro, Comprimento e Quantidade maiores que zero.');
+      return;
+    }
+
+    try {
+      const result = calculateMixedDeliveries(validos, largura, altura, comprimentoCaminhao, dataPrimeiraEntrega);
+      if (!result.length) {
+        setCalcError('Não foi possível gerar entregas. Verifique se as dimensões do caminhão são maiores que o diâmetro das estacas.');
+        return;
+      }
+      setEntregas(result);
+      setSaveStatus(null);
+    } catch (e: any) {
+      setCalcError(`Erro no cálculo: ${e.message}`);
+    }
   };
 
   // ── Salvar ────────────────────────────────────────────────────────────────
@@ -274,6 +297,13 @@ export default function PlanningPage() {
               </table>
             </div>
           </div>
+
+          {calcError && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-medium flex items-start gap-2">
+              <span className="mt-0.5 shrink-0">⚠️</span>
+              <span>{calcError}</span>
+            </div>
+          )}
 
           <button onClick={handleCalculate}
             className="w-full bg-cofer-600 hover:bg-cofer-700 text-white font-bold py-4 px-6 rounded-lg transition-colors flex justify-center items-center gap-2 shadow-md">
