@@ -54,11 +54,15 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
           <div className="space-y-3">
             <div>
               <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Cliente</p>
-              <p className="font-medium text-slate-800 text-lg">{pedido.clientes?.nome || 'N/A'}</p>
+              <p className="font-medium text-slate-800 text-lg">
+                {Array.isArray(pedido.clientes) ? pedido.clientes[0]?.nome : (pedido.clientes as any)?.nome || 'N/A'}
+              </p>
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Obra</p>
-              <p className="font-medium text-slate-800 text-lg">{pedido.obras?.nome || 'N/A'}</p>
+              <p className="font-medium text-slate-800 text-lg">
+                {Array.isArray(pedido.obras) ? pedido.obras[0]?.nome : (pedido.obras as any)?.nome || 'N/A'}
+              </p>
             </div>
             <div>
               <p className="text-xs text-slate-500 uppercase font-bold tracking-wider">Status Geral</p>
