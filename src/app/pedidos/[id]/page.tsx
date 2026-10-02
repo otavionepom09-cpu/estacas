@@ -21,8 +21,11 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
     .eq('id', id)
     .single();
 
+  let schemaCacheIssue = false;
+
   // Fallback: se der erro de coluna inexistente (cache do PostgREST não atualizou), busca sem ela
   if (error && error.code === '42703') {
+    schemaCacheIssue = true;
     const fallback = await supabase
       .from('pedidos')
       .select(`
@@ -43,7 +46,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         <h1 className="text-2xl font-bold text-red-600 mb-4">Erro ao carregar o pedido</h1>
         <p className="text-slate-600 mb-4">ID buscado: {id}</p>
         <p className="text-slate-600 bg-slate-100 p-4 rounded font-mono text-sm text-left overflow-auto">
-          {error ? JSON.stringify(error, null, 2) : 'Nenhum registro encontrado no banco para este ID (Pode ter sido apagado).'}
+          {error ? JSON.stringify(error, null, 2) : 'Nenhum registro encontrado no banco para este ID.'}
         </p>
         <Link href="/pedidos" className="mt-6 inline-block bg-cofer-600 text-white px-6 py-2 rounded font-bold">
           Voltar para Histórico
@@ -131,7 +134,25 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
         )}
       </div>
 
-      {!hasJson && (
+      {schemaCacheIssue && (
+        <div className="bg-red-50 border border-red-200 text-red-800 p-6 rounded-xl shadow-sm">
+          <h3 className="font-bold text-lg mb-2">⚠️ Atenção: Problema no Banco de Dados (Cache)</h3>
+          <p className="text-sm mb-3">
+            O seu banco de dados está impedindo a leitura dos detalhes deste pedido porque não reconhece a nova coluna.
+          </p>
+          <p className="text-sm mb-3">
+            Para consertar isso de uma vez por todas, vá no <strong>SQL Editor</strong> do Supabase e rode o seguinte comando:
+          </p>
+          <pre className="bg-white p-3 border border-red-100 rounded text-sm font-mono text-red-900 mb-2">
+            NOTIFY pgrst, 'reload schema';
+          </pre>
+          <p className="text-xs text-red-600">
+            Depois de rodar o comando acima, CRIE UM NOVO PEDIDO para testar. Este pedido antigo provavelmente foi salvo antes do cache atualizar.
+          </p>
+        </div>
+      )}
+
+      {!hasJson && !schemaCacheIssue && (
         <div className="bg-yellow-50 text-yellow-800 p-4 rounded-lg border border-yellow-200 text-sm">
           Este pedido foi salvo antes da atualização do sistema e não possui o histórico detalhado de entregas.
         </div>
