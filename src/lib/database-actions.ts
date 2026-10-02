@@ -194,6 +194,25 @@ export async function getClientesEObras() {
   }
 }
 
+export async function deleteClient(clienteId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANO || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const url = rawUrl?.replace(/['"]/g, '').trim();
+    const key = rawKey?.replace(/['"]/g, '').trim();
+    if (!url || !key) throw new Error('Supabase não configurado.');
+    const supabase = createClient(url, key, {
+      global: { fetch: (reqUrl, init) => fetch(reqUrl, { ...init, cache: 'no-store' }) }
+    });
+    // Cascata: obras → pedidos → entregas serão apagados via FK CASCADE
+    const { error } = await supabase.from('clientes').delete().eq('id', clienteId);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
 export async function checkDatabaseSchema() {
   try {
     const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
