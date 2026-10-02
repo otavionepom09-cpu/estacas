@@ -204,8 +204,46 @@ export async function deleteClient(clienteId: string): Promise<{ success: boolea
     const supabase = createClient(url, key, {
       global: { fetch: (reqUrl, init) => fetch(reqUrl, { ...init, cache: 'no-store' }) }
     });
-    // Cascata: obras → pedidos → entregas serão apagados via FK CASCADE
+    
+    // Deleção manual em cascata (para garantir que funciona mesmo se o banco não tiver ON DELETE CASCADE configurado)
+    const { data: pedidos } = await supabase.from('pedidos').select('id').eq('cliente_id', clienteId);
+    if (pedidos && pedidos.length > 0) {
+      const pIds = pedidos.map(p => p.id);
+      await supabase.from('entregas').delete().in('pedido_id', pIds);
+      await supabase.from('pedidos').delete().in('id', pIds);
+    }
+    await supabase.from('obras').delete().eq('cliente_id', clienteId);
+    
+    // Finalmente apaga o cliente
     const { error } = await supabase.from('clientes').delete().eq('id', clienteId);
+    if (error) throw new Error(error.message);
+    return { success: true };
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+export async function deleteClientsBulk(clienteIds: string[]): Promise<{ success: boolean; error?: string }> {
+  try {
+    const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANO || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const url = rawUrl?.replace(/['"]/g, '').trim();
+    const key = rawKey?.replace(/['"]/g, '').trim();
+    if (!url || !key) throw new Error('Supabase não configurado.');
+    const supabase = createClient(url, key, {
+      global: { fetch: (reqUrl, init) => fetch(reqUrl, { ...init, cache: 'no-store' }) }
+    });
+    
+    // Deleção manual em cascata para múltiplos clientes
+    const { data: pedidos } = await supabase.from('pedidos').select('id').in('cliente_id', clienteIds);
+    if (pedidos && pedidos.length > 0) {
+      const pIds = pedidos.map(p => p.id);
+      await supabase.from('entregas').delete().in('pedido_id', pIds);
+      await supabase.from('pedidos').delete().in('id', pIds);
+    }
+    await supabase.from('obras').delete().in('cliente_id', clienteIds);
+    
+    const { error } = await supabase.from('clientes').delete().in('id', clienteIds);
     if (error) throw new Error(error.message);
     return { success: true };
   } catch (e: any) {
