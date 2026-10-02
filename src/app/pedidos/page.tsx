@@ -2,6 +2,7 @@ import { getSupabase } from '@/lib/supabase';
 import { format } from 'date-fns';
 import { ClipboardList, Truck } from 'lucide-react';
 import { DeleteButton } from './DeleteButton';
+import Link from 'next/link';
 
 export const revalidate = 0; // Disable static rendering for this page
 
@@ -97,11 +98,17 @@ export default async function PedidosPage() {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <DeleteButton
-                        pedidoId={pedido.id}
-                        cliente={pedido.clientes?.nome || ''}
-                        obra={pedido.obras?.nome || ''}
-                      />
+                      <div className="flex items-center justify-end gap-2">
+                        <Link href={`/pedidos/${pedido.id}`}
+                          className="flex items-center gap-1 text-cofer-600 hover:text-cofer-700 bg-cofer-50 hover:bg-cofer-100 px-3 py-1.5 rounded text-sm font-semibold transition-colors">
+                          Ver detalhes
+                        </Link>
+                        <DeleteButton
+                          pedidoId={pedido.id}
+                          cliente={pedido.clientes?.nome || ''}
+                          obra={pedido.obras?.nome || ''}
+                        />
+                      </div>
                     </td>
                   </tr>
                 ))}

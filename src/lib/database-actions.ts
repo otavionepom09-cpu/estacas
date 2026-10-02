@@ -12,6 +12,7 @@ export async function saveOrderToDatabase(data: {
   quantidadeSolicitada: number;
   capacidade: number;
   entregas: (DeliveryPlan & { data: string; status: string })[];
+  json_planejamento?: any;
 }) {
   try {
     const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -104,6 +105,7 @@ export async function saveOrderToDatabase(data: {
         diametro_utilizado: data.diametro,
         largura_utilizada: data.largura,
         comprimento_utilizado: data.comprimento,
+        json_planejamento: data.json_planejamento,
       })
       .select('id')
       .single();
@@ -155,5 +157,27 @@ export async function deleteOrder(pedidoId: string): Promise<{ success: boolean;
   } catch (error: unknown) {
     const msg = error instanceof Error ? error.message : 'Erro desconhecido';
     return { success: false, error: msg };
+  }
+}
+
+export async function getClientesEObras() {
+  try {
+    const rawUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const rawKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_ANO || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const url = rawUrl?.replace(/['"]/g, '').trim();
+    const key = rawKey?.replace(/['"]/g, '').trim();
+    if (!url || !key) return { clientes: [], obras: [] };
+
+    const supabase = createClient(url, key);
+
+    const { data: cl } = await supabase.from('clientes').select('nome');
+    const { data: ob } = await supabase.from('obras').select('nome');
+
+    return {
+      clientes: Array.from(new Set(cl?.map(c => c.nome) || [])),
+      obras: Array.from(new Set(ob?.map(o => o.nome) || []))
+    };
+  } catch {
+    return { clientes: [], obras: [] };
   }
 }
