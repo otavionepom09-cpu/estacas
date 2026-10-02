@@ -11,7 +11,7 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
   const supabase = getSupabase();
   const { id } = await params;
 
-  const { data: pedido, error } = await supabase
+  let { data: pedido, error } = await supabase
     .from('pedidos')
     .select(`
       id, created_at, status, json_planejamento,
@@ -20,6 +20,22 @@ export default async function OrderDetailsPage({ params }: { params: Promise<{ i
     `)
     .eq('id', id)
     .single();
+
+  // Fallback: se der erro de coluna inexistente (cache do PostgREST não atualizou), busca sem ela
+  if (error && error.code === '42703') {
+    const fallback = await supabase
+      .from('pedidos')
+      .select(`
+        id, created_at, status,
+        clientes (nome),
+        obras (nome)
+      `)
+      .eq('id', id)
+      .single();
+    
+    pedido = fallback.data;
+    error = fallback.error;
+  }
 
   if (error || !pedido) {
     return (
