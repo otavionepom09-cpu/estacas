@@ -7,8 +7,9 @@ import { StakeItem, MixedDelivery } from '@/lib/calculations';
 
 export const revalidate = 0;
 
-export default async function OrderDetailsPage({ params }: { params: { id: string } }) {
+export default async function OrderDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const supabase = getSupabase();
+  const { id } = await params;
 
   const { data: pedido, error } = await supabase
     .from('pedidos')
@@ -17,7 +18,7 @@ export default async function OrderDetailsPage({ params }: { params: { id: strin
       clientes (nome),
       obras (nome)
     `)
-    .eq('id', params.id)
+    .eq('id', id)
     .single();
 
   if (error || !pedido) {
